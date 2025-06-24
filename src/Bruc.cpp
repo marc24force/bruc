@@ -60,6 +60,10 @@ T Bruc::get(std::string s, std::string k)
 // Read file as a string
 Bruc Bruc::readFile(std::string file) {
 	std::ifstream _file(file);
+	if (!_file) {
+		std::cerr << "[BRUC] - ERROR! Couldn't open file " << file << std::endl;
+		return {};
+	}
 	std::stringstream buffer;
 	buffer << _file.rdbuf();
 	return readString(buffer.str());
