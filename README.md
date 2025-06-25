@@ -52,7 +52,7 @@ valid and part of the section name.
 ### Simple types
 The supported types are:
 - String: Quotes are optional, the first and last `"` are ignored, any other `"` is part of the string. Multiline is not supported.
-- Integers: It supports `int`, `unsigned int`, `long` and `unsigned long`. Hexadecimal or binary input is valid.
+- Integers: It supports `int`, `unsigned int`, `long` and `unsigned long`. Hexadecimal input is valid.
 - Floats: `float` and `double` are supported even when using cientific notation.
 - Boolean: You can get boolean values if they are 1 or 0 in the configuration file.
 Each of the entries can be one of this types:

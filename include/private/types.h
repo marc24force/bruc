@@ -52,6 +52,8 @@ T parseValue(std::string value) {
 		return result;
 	} else {
 		std::istringstream converter(value);
+		if (value.rfind("0x", 0) == 0 || value.rfind("0X", 0) == 0)
+			converter >> std::hex;
 		converter >> result;
 		return result;
 	}
