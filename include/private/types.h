@@ -1,3 +1,5 @@
+#include <filesystem>
+
 #define BRUC_INSTANTIATE_GET(T) template T Bruc::get<T>(std::string, std::string); \
 	                        template std::vector<T> Bruc::get<std::vector<T>>(std::string, std::string)
 
@@ -9,6 +11,7 @@ BRUC_INSTANTIATE_GET(unsigned long);
 BRUC_INSTANTIATE_GET(float);
 BRUC_INSTANTIATE_GET(double);
 BRUC_INSTANTIATE_GET(std::string);
+BRUC_INSTANTIATE_GET(std::filesystem::path);
 
 template<typename>
 struct is_vector : std::false_type {};

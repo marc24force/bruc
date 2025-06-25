@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
+#include <filesystem>
 #include "Bruc.h"  // Assume Bruc class is declared here
+
 
 int main() {
     Bruc config = Bruc::readFile("example/example.bruc");
@@ -25,6 +27,7 @@ int main() {
     float fvalue = config.get<float>("General", "float_value");
     double dvalue = config.get<double>("General", "double_value");
     std::string strvalue = config.get<std::string>("General", "string_value");
+    std::filesystem::path pvalue = config.get<std::filesystem::path>("General", "path_value");
     bool bvalue_true = config.get<bool>("General", "bool_true");
     bool bvalue_false = config.get<bool>("General", "bool_false");
 
@@ -35,6 +38,7 @@ int main() {
     std::cout << "float_value: " << fvalue << "\n";
     std::cout << "double_value: " << dvalue << "\n";
     std::cout << "string_value: " << strvalue << "\n";
+    std::cout << "path_value: " << pvalue << "\n";
     std::cout << "bool_true: " << std::boolalpha << bvalue_true << "\n";
     std::cout << "bool_false: " << std::boolalpha << bvalue_false << "\n";
 

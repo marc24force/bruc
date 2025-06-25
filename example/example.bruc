@@ -8,6 +8,7 @@ ulong_value = 1234567890
 float_value = 3.14
 double_value = 2.718281828459
 string_value =        hello world
+path_value = /opt
 bool_true = 1
 bool_false = 0
 
