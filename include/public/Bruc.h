@@ -10,7 +10,7 @@ class Bruc {
 	public:
 		// Returns the value interpreted as the valid types
 		template <typename T = std::string>
-		T get(std::string s, std::string k);
+		T get(std::string s, std::string k, std::string d = "");
 
 		// Returns true if section s exists
 		bool exists(std::string s);

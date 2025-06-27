@@ -41,6 +41,7 @@ int main() {
     std::cout << "path_value: " << pvalue << "\n";
     std::cout << "bool_true: " << std::boolalpha << bvalue_true << "\n";
     std::cout << "bool_false: " << std::boolalpha << bvalue_false << "\n";
+    std::cout << "no_value: " << config.get("General", "no_value", "value doesn't exist") << "\n";
 
     std::cout << std::endl;
 
@@ -57,6 +58,8 @@ int main() {
     std::cout << "string_vec: "; for (auto v : string_vec) std::cout << v << ", "; std::cout << "\n";
     std::vector<bool> bool_vec = config.get<std::vector<bool>>("Arrays", "bool_vec");
     std::cout << "bool_vec: "; for (auto v : bool_vec) std::cout << v << ", "; std::cout << "\n";
+    std::vector<std::string> empty_vec = config.get<std::vector<std::string>>("Arrays", "empty_vec");
+    std::cout << "empty_vec: {"; for (auto v : empty_vec) std::cout << v << ", "; std::cout << "}\n";
 
     std::cout << std::endl;
 

@@ -43,12 +43,9 @@ std::vector<std::string> Bruc::getKeys(std::string s) {
 
 
 template <typename T>
-T Bruc::get(std::string s, std::string k) 
+T Bruc::get(std::string s, std::string k, std::string d) 
 {
-	if (!exists(s,k)) {
-		std::cerr << "[BRUC] - ERROR! No existing key \"" << k <<"\" in section \"" << s <<"\"!"<< std::endl;
-		return T{};
-	}
+	if (!exists(s,k)) return parseValue<T>(d);
 
 	std::string value = seccions.at(s).at(k);
 

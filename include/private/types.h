@@ -1,7 +1,7 @@
 #include <filesystem>
 
-#define BRUC_INSTANTIATE_GET(T) template T Bruc::get<T>(std::string, std::string); \
-	                        template std::vector<T> Bruc::get<std::vector<T>>(std::string, std::string)
+#define BRUC_INSTANTIATE_GET(T) template T Bruc::get<T>(std::string, std::string, std::string); \
+	                        template std::vector<T> Bruc::get<std::vector<T>>(std::string, std::string, std::string)
 
 BRUC_INSTANTIATE_GET(bool);
 BRUC_INSTANTIATE_GET(int);
@@ -26,7 +26,6 @@ template <typename T>
 T parseValue(std::string value) {
 	value.erase(value.begin(), std::find_if(value.begin(), value.end(), [](char c) { return !std::isspace(c); }));
 	value.erase(std::find_if(value.rbegin(), value.rend(), [](char c) { return !std::isspace(c); }).base(), value.end());
-
 
 	T result;
 
