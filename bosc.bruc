@@ -1,0 +1,10 @@
+[export]
+includes = {include/public}
+
+[project]
+name = "bruc"
+
+targets = {lib/libbruc.a}
+includes = {include}
+sources = {src/Bruc.cpp}
+flags = -Os
