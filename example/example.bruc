@@ -7,10 +7,9 @@ long_value = -1234567890
 ulong_value = 0x80000000
 float_value = 314e-2
 double_value = 2.718281828459
-string_value =        hello world
+string_value =  hello world
 path_value = /opt
-bool_true = 1
-bool_false = 0
+bool_value = 1
 
 [Arrays]
 int_vec = {1, 2, 3}

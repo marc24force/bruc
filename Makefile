@@ -1,20 +1,20 @@
 
 all: lib/libbruc.a
 
-build/Bruc.o: src/Bruc.cpp include/private/types.h
+build/%.o: src/%.cpp
 	mkdir build -p
 	g++ -c -Os $< -Iinclude -o $@
 
-lib/libbruc.a: build/Bruc.o
+lib/libbruc.a: build/Bruc.o build/BrucError.o
 	mkdir lib -p
-	ar rcs $@ $<
+	ar rcs $@ $^
 
 .PHONY: test
 test: test.exe
 	@./test.exe
 
 test.exe: example/main.cpp lib/libbruc.a
-	g++ $< -Iinclude/public -Llib/ -lbruc -Wl,--gc-sections -o test.exe
+	g++ $< -Iinclude -Llib/ -lbruc -Wl,--gc-sections -o test.exe
 
 .PHONY: clean
 clean: 

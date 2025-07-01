@@ -1,13 +1,25 @@
+#pragma once
+
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "BrucError.h"
+
 
 class Bruc {
 	private:
 		// Variables
 		std::unordered_map<std::string, std::unordered_map<std::string, std::string>> seccions;
+		std::error_code _error;
+		unsigned int _error_line;
+
+		// Error constructor
+		Bruc(std::error_code ec, unsigned int ln = 0);
 
 	public:
+		// Normal constructor
+		Bruc();
+
 		// Returns the value interpreted as the valid types
 		template <typename T = std::string>
 		T get(std::string s, std::string k, std::string d = "");
@@ -19,7 +31,8 @@ class Bruc {
 		bool exists(std::string s, std::string k);
 
 		// Helper function for error tracking returns if the map is valid
-		bool error();
+		std::error_code error();
+		unsigned int getErrorLine();
 
 		// Returns a vector with all the sections
 		std::vector<std::string> getSections();

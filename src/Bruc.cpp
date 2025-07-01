@@ -1,11 +1,77 @@
-#include "public/Bruc.h"
+#include "Bruc.h"
+
 #include <algorithm>
 #include <iostream>
 
 #include <fstream>
 #include <sstream>
 
-#include "private/types.h"
+#include <filesystem>
+
+/* Define all the supported types */
+#define BRUC_INSTANTIATE_GET(T) template T Bruc::get<T>(std::string, std::string, std::string); \
+	                        template std::vector<T> Bruc::get<std::vector<T>>(std::string, std::string, std::string)
+
+BRUC_INSTANTIATE_GET(bool);
+BRUC_INSTANTIATE_GET(int);
+BRUC_INSTANTIATE_GET(unsigned int);
+BRUC_INSTANTIATE_GET(long);
+BRUC_INSTANTIATE_GET(unsigned long);
+BRUC_INSTANTIATE_GET(float);
+BRUC_INSTANTIATE_GET(double);
+BRUC_INSTANTIATE_GET(std::string);
+BRUC_INSTANTIATE_GET(std::filesystem::path);
+
+template<typename>
+struct is_vector : std::false_type {};
+
+template<typename T, typename A>
+struct is_vector<std::vector<T, A>> : std::true_type {};
+
+template<typename T>
+constexpr bool is_vector_v = is_vector<T>::value;
+
+// Parser function
+template <typename T>
+T parseValue(std::string value, std::error_code& ec) {
+	value.erase(value.begin(), std::find_if(value.begin(), value.end(), [](char c) { return !std::isspace(c); }));
+	value.erase(std::find_if(value.rbegin(), value.rend(), [](char c) { return !std::isspace(c); }).base(), value.end());
+
+	T result;
+
+	if constexpr (std::is_same_v<T, std::string>){
+		if (!value.empty() && value.front() == '"' && value.back() == '"')
+			return std::string(value.begin() + 1, value.end() - 1);
+		return value;
+	} else if constexpr (is_vector_v<T>) {
+		using A = typename T::value_type;
+		if (!value.empty() && value.front() == '{' && value.back() == '}') {
+			std::istringstream ss(std::string(value.begin()+1, value.end()-1));
+			std::string item;
+			while (std::getline(ss, item, ',')) 
+				result.push_back(parseValue<A>(item, ec));
+
+		} else if (value.size() >= 5 && value.front() == '(' && value.back() == ')') {
+			auto comma = value.begin();
+			for (; *comma != ',' && comma != value.end(); ++comma);
+			unsigned int N = parseValue<unsigned int>(std::string(value.begin()+1, comma), ec);
+			A M = parseValue<A>(std::string(comma+1, value.end()-1), ec);
+			for (int i = 0; i < N; ++i) result.push_back(M);
+		} else ec = make_error_code(BrucError::WrongTypeFormat);
+		return result;
+	} else {
+		std::istringstream converter(value);
+		if (value.rfind("0x", 0) == 0 || value.rfind("0X", 0) == 0)
+			converter >> std::hex;
+		if(!(converter >> result)) ec = make_error_code(BrucError::WrongTypeFormat);
+		return result;
+	}
+}
+
+/* BRUC */
+
+Bruc::Bruc() {}
+Bruc::Bruc(std::error_code ec, unsigned int ln) : _error(ec), _error_line(ln) { }
 
 bool Bruc::exists(std::string s) {
 	auto it = seccions.find(s);
@@ -21,8 +87,12 @@ bool Bruc::exists(std::string s, std::string k) {
 	return false;
 }
 
-bool Bruc::error() {
-	return seccions.empty();
+std::error_code Bruc::error() {
+	return _error;
+}
+
+unsigned int Bruc::getErrorLine() {
+	return _error_line;
 }
 
 std::vector<std::string> Bruc::getSections() {
@@ -45,22 +115,23 @@ std::vector<std::string> Bruc::getKeys(std::string s) {
 template <typename T>
 T Bruc::get(std::string s, std::string k, std::string d) 
 {
-	if (!exists(s,k)) return parseValue<T>(d);
+	_error.clear();
+
+	if (!exists(s,k)) return parseValue<T>(d, _error);
 
 	std::string value = seccions.at(s).at(k);
 
-	return parseValue<T>(value);
+	return parseValue<T>(value, _error);
 }
 
 // Contents parsing
 
 // Read file as a string
 Bruc Bruc::readFile(std::string file) {
-	std::ifstream _file(file);
-	if (!_file) {
-		std::cerr << "[BRUC] - ERROR! Couldn't open file " << file << std::endl;
-		return {};
-	}
+	std::ifstream _file;
+	errno = 0;
+	_file.open(file);
+	if (!_file) return Bruc(std::error_code(errno, std::generic_category()));
 	std::stringstream buffer;
 	buffer << _file.rdbuf();
 	return readString(buffer.str());
@@ -74,13 +145,16 @@ class Parser {
 		// Variables
 		std::string text;
 		Iterador line_start, line_end, line_next;
+		unsigned int _line;
 
 	public:
 		// Functions
-		Parser(std::string _text) : text(_text), line_start(text.begin()), line_next(text.begin()) { }
+		Parser(std::string _text) : _line(0), text(_text), line_start(text.begin()), line_next(text.begin()) { }
 		
 		// Move iterators to next line, return true if new line exists
 		bool getNextLine() {
+			// Increment the line number
+			++_line;
 			// If previous line was the last, return false
 			if (line_next == text.end()) return false;
 			// Move line end unless it was at the beginnig
@@ -164,6 +238,11 @@ class Parser {
 			return {key, value};
 		}
 
+		// Get current line number
+		unsigned int ln() {
+			return _line;
+		}
+
 		// Print current line
 		void printLine() {
 			std::string line(line_start, line_end);
@@ -189,34 +268,24 @@ Bruc Bruc::readString(std::string data) {
 			s_pairs.clear();
 			// Update s_name
 			s_name = p.lineSectionName();
-			// Check if s_name already existed
-			if (ret.seccions.find(s_name) != ret.seccions.end()) {
-				// Print error
-				std::cerr << "[BRUC] - ERROR! Section \"" << s_name << "\" already exists!" << std::endl;
-				// Return empty
-				return Bruc();
-			}
+			// Check if s_name already existed and return error
+			if (ret.seccions.find(s_name) != ret.seccions.end())
+				return Bruc(make_error_code(BrucError::SectionExists), p.ln());
 			continue;
 		}
 		// If we are here it's a key value pair
 		auto [key, value] = p.lineKeyValue();
-		// Check valid key and value
-		if (key == "" || value == "") {
-			// Print error
-			std::cerr << "[BRUC] - ERROR! Invalid key-value pair in section \"" << s_name << "\"!" << std::endl;
-			p.printLine();
-			// Return empty
-			return Bruc();
+
+		if (key.empty() || value.empty()) {
+			if (key.empty() && value.empty()) return Bruc(make_error_code(BrucError::WrongPairFormat), p.ln());
+			else if (key.empty()) return Bruc(make_error_code(BrucError::EmptyKeyName), p.ln());
+			else return Bruc(make_error_code(BrucError::EmptyKeyValue), p.ln());
 		}
-		// Check if key already exists
-		if (s_pairs.find(key) != s_pairs.end()) {
-			// Print error
-			std::cerr << "[BRUC] - ERROR! Key \"" << key << "\" already exists in section \"" << s_name << "\"!" << std::endl;
-			// Return empty
-			return Bruc();
-		}
+		// Check if key already exists and return error
+		if (s_pairs.find(key) != s_pairs.end()) return Bruc(make_error_code(BrucError::KeyExists), p.ln());
 		s_pairs[key] = value;
 	}
 	ret.seccions[s_name] = s_pairs;
+	ret._error.clear();
 	return ret;
 }
