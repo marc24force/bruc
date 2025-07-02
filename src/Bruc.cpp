@@ -43,6 +43,9 @@ T parseValue(std::string value, std::error_code& ec) {
 		if (!value.empty() && value.front() == '"' && value.back() == '"')
 			return std::string(value.begin() + 1, value.end() - 1);
 		return value;
+	} else if constexpr (std::is_same_v<T, std::filesystem::path>) {
+		return std::filesystem::path(parseValue<std::string>(value, ec));
+
 	} else if constexpr (is_vector_v<T>) {
 		using A = typename T::value_type;
 		if (!value.empty() && value.front() == '{' && value.back() == '}') {
