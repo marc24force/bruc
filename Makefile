@@ -5,7 +5,7 @@ build/%.o: src/%.cpp
 	mkdir build -p
 	g++ -c -Os $< -Iinclude -o $@
 
-lib/libbruc.a: build/Bruc.o build/BrucError.o
+lib/libbruc.a: build/error_code.o build/value_access.o build/parser.o build/utils.o
 	mkdir lib -p
 	ar rcs $@ $^
 

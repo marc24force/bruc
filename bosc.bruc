@@ -6,5 +6,5 @@ name = "bruc"
 
 targets = {lib/libbruc.a}
 includes = {include}
-sources = {src/Bruc.cpp, src/BrucError.cpp}
+sources = {src/error_code.cpp, src/parser.cpp, src/utils.cpp, src/value_access.cpp}
 flags = -Os

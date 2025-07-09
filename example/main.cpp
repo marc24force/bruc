@@ -1,15 +1,15 @@
 #include <iostream>
 #include <vector>
-#include <filesystem>
 #include "Bruc.h"
 
 Bruc b;
 
 template <typename T>
 T get (std::string s, std::string k, std::string d="") {
-	T r = b.get<T>(s,k,d);
-	if (b.error()) {
-		std::cerr << "Error: " << b.error().message() << std::endl;
+	Bruc::error_code ec;
+	T r = b.get<T>(s,k,d,ec);
+	if (ec) {
+		std::cerr << "Error: " << ec.verbose() << std::endl;
 		exit(1);
 	}
 	return r;
@@ -28,11 +28,11 @@ auto print_vec = [](const auto& vec) {
 
 
 int main() {
-	b = Bruc::readFile("example/example.bruc");
-
-	if (b.error()) {
-		std::cerr << "Error: " << b.error().message() << ". Line " << b.getErrorLine() << std::endl;
-		return 1;
+	Bruc::error_code ec;
+	b = Bruc(std::filesystem::path("example/example.bruc"),ec);
+	if (ec) {
+		std::cerr << "Error: " << ec.verbose() << std::endl;
+		exit(1);
 	}
 
 	std::cout << std::endl;
@@ -69,7 +69,7 @@ int main() {
 
 
 	// List sections
-	auto sections = b.getSections();
+	auto sections = b.sections();
 	std::cout << "Sections:\n";
 	for (const auto& sec : sections)
 		std::cout << " - " << sec << "\n";
@@ -77,7 +77,7 @@ int main() {
 
 	// List keys in all sections
 	for (const auto& sec : sections) {
-		auto keys = b.getKeys(sec);
+		auto keys = b.keys(sec);
 		std::cout << "Keys in " << sec << ":\n";
 		for (const auto& key : keys)
 			std::cout << " * " << key << "\n";
